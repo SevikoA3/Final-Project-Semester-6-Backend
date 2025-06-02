@@ -109,6 +109,19 @@ export const deleteItem = async (req, res) => {
     if (item.created_by !== req.userId) {
       return res.status(403).json({ message: "Forbidden: Not your item" });
     }
+    // Hapus gambar dari Cloudinary jika ada
+    if (item.image_url) {
+      // Ekstrak public_id dari image_url
+      const urlParts = item.image_url.split('/');
+      const fileName = urlParts[urlParts.length - 1].split('.')[0];
+      const publicId = `items/${fileName}`;
+      try {
+        await cloudinary.uploader.destroy(publicId);
+      } catch (err) {
+        // Jika gagal hapus di cloudinary, tetap lanjut hapus item di DB
+        console.error('Cloudinary delete error:', err.message);
+      }
+    }
     await item.destroy();
     res.status(200).json({ message: "Item deleted" });
   } catch (err) {
