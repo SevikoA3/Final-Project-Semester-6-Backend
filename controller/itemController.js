@@ -1,6 +1,21 @@
 import Item from "../model/Item.js";
 import Category from "../model/Category.js";
 import User from "../model/User.js";
+import cloudinary from "../util/cloudinary.js";
+import streamifier from "streamifier";
+
+async function streamUpload(buffer, options = {}) {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      options,
+      (error, result) => {
+        if (result) resolve(result);
+        else reject(error);
+      }
+    );
+    streamifier.createReadStream(buffer).pipe(stream);
+  });
+}
 
 export const getAllItems = async (req, res) => {
   try {
@@ -34,9 +49,19 @@ export const getItemById = async (req, res) => {
 
 export const createItem = async (req, res) => {
   try {
-    const { name, description, image_url, quantity, category_id } = req.body;
+    const { name, description, quantity, category_id } = req.body;
     if (!name || !category_id) {
       return res.status(400).json({ message: "Name and category_id are required" });
+    }
+    let image_url = null;
+    if (req.file) {
+      const uploadResult = await streamUpload(req.file.buffer, {
+        folder: "items",
+        use_filename: true,
+        unique_filename: false,
+        overwrite: true,
+      });
+      image_url = uploadResult.secure_url;
     }
     const item = await Item.create({
       name,
@@ -59,7 +84,17 @@ export const updateItem = async (req, res) => {
     if (item.created_by !== req.userId) {
       return res.status(403).json({ message: "Forbidden: Not your item" });
     }
-    const { name, description, image_url, quantity, category_id } = req.body;
+    const { name, description, quantity, category_id } = req.body;
+    let image_url = item.image_url;
+    if (req.file) {
+      const uploadResult = await streamUpload(req.file.buffer, {
+        folder: "items",
+        use_filename: true,
+        unique_filename: false,
+        overwrite: true,
+      });
+      image_url = uploadResult.secure_url;
+    }
     await item.update({ name, description, image_url, quantity, category_id });
     res.status(200).json(item);
   } catch (err) {

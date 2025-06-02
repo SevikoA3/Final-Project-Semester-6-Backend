@@ -13,7 +13,7 @@ const association = async () => {
     Item.belongsTo(User, { as: "creator", foreignKey: "created_by", targetKey: "id" });
     User.hasMany(Item, { foreignKey: "created_by", sourceKey: "id" });
 
-    // await db.sync({force: true});
+    // await db.sync({ force: true });
     await db.sync();
   } catch (error) {
     console.log(error.message);
