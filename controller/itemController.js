@@ -3,7 +3,6 @@ import Category from "../model/Category.js";
 import User from "../model/User.js";
 import cloudinary from "../util/cloudinary.js";
 import streamifier from "streamifier";
-import upload from "../util/multer.js";
 
 async function streamUpload(buffer, options = {}) {
   return new Promise((resolve, reject) => {
@@ -83,9 +82,7 @@ export const updateItem = async (req, res) => {
   try {
     const item = await Item.findByPk(req.params.id);
     if (!item) return res.status(404).json({ message: "Item not found" });
-    if (item.created_by !== req.userId) {
-      return res.status(403).json({ message: "Forbidden: Not your item" });
-    }
+    // Siapapun boleh edit, hapus pengecekan creator
     const { name, description, quantity, category_id } = req.body;
     let image_url = item.image_url;
     if (req.file) {
@@ -94,8 +91,6 @@ export const updateItem = async (req, res) => {
         unique_filename: true,
         overwrite: true,
       });
-
-      console.log(uploadResult.publicId);
       image_url = uploadResult.secure_url;
     }
     await item.update({ name, description, image_url, quantity, category_id });
@@ -109,19 +104,13 @@ export const deleteItem = async (req, res) => {
   try {
     const item = await Item.findByPk(req.params.id);
     if (!item) return res.status(404).json({ message: "Item not found" });
-    if (item.created_by !== req.userId) {
-      return res.status(403).json({ message: "Forbidden: Not your item" });
-    }
-    // Hapus gambar dari Cloudinary jika ada
     if (item.image_url) {
-      // Ekstrak public_id dari image_url
       const urlParts = item.image_url.split("/");
       const fileName = urlParts[urlParts.length - 1].split(".")[0];
       const publicId = `items/${fileName}`;
       try {
         await cloudinary.uploader.destroy(publicId);
       } catch (err) {
-        // Jika gagal hapus di cloudinary, tetap lanjut hapus item di DB
         console.error("Cloudinary delete error:", err.message);
       }
     }

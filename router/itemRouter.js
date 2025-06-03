@@ -1,7 +1,7 @@
 import express from "express";
 import { verifyToken } from "../middleware/verifyToken.js";
 import { getAllItems, getItemById, createItem, updateItem, deleteItem } from "../controller/itemController.js";
-import upload from "../util/multer.js";
+import upload from "../middleware/multer.js";
 
 const router = express.Router();
 
