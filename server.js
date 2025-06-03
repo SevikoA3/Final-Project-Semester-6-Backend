@@ -5,6 +5,7 @@ import association from "./util/assoc.js";
 import authRouter from "./router/authRouter.js";
 import itemRouter from "./router/itemRouter.js";
 import categoryRouter from "./router/categoryRouter.js";
+import chatRouter from "./router/chatRouter.js";
 import cookieParser from "cookie-parser";
 dotenv.config();
 
@@ -30,6 +31,7 @@ app.get("/", (req, res) => {
 app.use("/api", authRouter);
 app.use("/api", itemRouter);
 app.use("/api", categoryRouter);
+app.use("/api", chatRouter);
 
 const PORT = process.env.PORT;
 
