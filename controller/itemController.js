@@ -3,6 +3,7 @@ import Category from "../model/Category.js";
 import User from "../model/User.js";
 import cloudinary from "../util/cloudinary.js";
 import streamifier from "streamifier";
+import upload from "../util/multer.js";
 
 async function streamUpload(buffer, options = {}) {
   return new Promise((resolve, reject) => {
@@ -51,14 +52,15 @@ export const createItem = async (req, res) => {
   try {
     const { name, description, quantity, category_id } = req.body;
     if (!name || !category_id) {
-      return res.status(400).json({ message: "Name and category_id are required" });
+      return res
+        .status(400)
+        .json({ message: "Name and category_id are required" });
     }
     let image_url = null;
     if (req.file) {
       const uploadResult = await streamUpload(req.file.buffer, {
         folder: "items",
-        use_filename: true,
-        unique_filename: false,
+        unique_filename: true,
         overwrite: true,
       });
       image_url = uploadResult.secure_url;
@@ -89,10 +91,11 @@ export const updateItem = async (req, res) => {
     if (req.file) {
       const uploadResult = await streamUpload(req.file.buffer, {
         folder: "items",
-        use_filename: true,
-        unique_filename: false,
+        unique_filename: true,
         overwrite: true,
       });
+
+      console.log(uploadResult.publicId);
       image_url = uploadResult.secure_url;
     }
     await item.update({ name, description, image_url, quantity, category_id });
@@ -112,14 +115,14 @@ export const deleteItem = async (req, res) => {
     // Hapus gambar dari Cloudinary jika ada
     if (item.image_url) {
       // Ekstrak public_id dari image_url
-      const urlParts = item.image_url.split('/');
-      const fileName = urlParts[urlParts.length - 1].split('.')[0];
+      const urlParts = item.image_url.split("/");
+      const fileName = urlParts[urlParts.length - 1].split(".")[0];
       const publicId = `items/${fileName}`;
       try {
         await cloudinary.uploader.destroy(publicId);
       } catch (err) {
         // Jika gagal hapus di cloudinary, tetap lanjut hapus item di DB
-        console.error('Cloudinary delete error:', err.message);
+        console.error("Cloudinary delete error:", err.message);
       }
     }
     await item.destroy();
