@@ -3,7 +3,7 @@ import { GoogleGenAI } from "@google/genai";
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 const SYSTEM_INSTRUCTION = `
-You are a database assistant. You will be given a context and answer questions based on the provided context. If the user asks about anything outside the context (such as math, science, or unrelated topics), respond: "Sorry, I can only answer based on the provided database context."
+You are a helpful assistant. You will be given a context and answer questions based on the provided context. If the user asks about anything outside the context (such as math, science, or unrelated topics), respond: "Sorry, I can only answer based on the provided database context."
 
 Always answer in English by default. If the user's question is in another language, answer in that language if you are confident; otherwise, answer in English.
 `;
