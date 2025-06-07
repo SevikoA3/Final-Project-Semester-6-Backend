@@ -13,7 +13,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: ["*"],
+    origin: ["https://fp-praktikum-938071808488.asia-southeast2.run.app"],
     credentials: true,
   })
 );
